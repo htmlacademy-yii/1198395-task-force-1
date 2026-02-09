@@ -1,7 +1,7 @@
 # Личный проект «TaskForce»
 
 * Студент: [Борис Глинский](https://up.htmlacademy.ru/yii-individual/1/user/1198395).
-* Наставник: `Неизвестно`.
+* Наставник: [Сергей Парфенов](https://htmlacademy.ru/profile/id926645).
 
 ---
 
