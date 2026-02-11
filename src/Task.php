@@ -57,7 +57,7 @@ class Task
     /**
      * Получает id заказчика задания.
      *
-     * @return int Id заказчика задачи.
+     * @return int Id заказчика задания.
      */
     public function getOwnerId(): int
     {
