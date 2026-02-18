@@ -9,18 +9,18 @@ final class TaskTest extends TestCase
 {
     public function testInitialOwnerIdIsSetFromConstructor(): void
     {
-        $ownerId = 1;
+        $authorId = 1;
 
-        $task = new Task($ownerId);
+        $task = new Task($authorId);
 
-        $this->assertSame($ownerId, $task->getOwnerId());
+        $this->assertSame($authorId, $task->getOwnerId());
     }
 
-    public function testInitialTaskStatusIsNew(): void
+    public function testInitialTaskStatusIsSetFromConstructor(): void
     {
-        $task = new Task(1);
+        $task = new Task(1, Task::STATUS_CANCELED);
 
-        $expectedStatus = Task::STATUS_NEW;
+        $expectedStatus = Task::STATUS_CANCELED;
 
         $this->assertSame($expectedStatus, $task->getStatus());
     }
@@ -60,7 +60,7 @@ final class TaskTest extends TestCase
         $task = new Task(1);
 
         $expectedStatus = Task::STATUS_FAILED;
-        $action = Task::ACTION_REJECT;
+        $action = Task::ACTION_GIVE_UP;
 
         $this->assertSame($expectedStatus, $task->getNextStatus($action));
     }
@@ -74,7 +74,7 @@ final class TaskTest extends TestCase
         $this->assertFalse($task->getNextStatus($status));
     }
 
-    public function testNewTaskReturnsStartAndCancelActions(): void
+    public function testNewTaskReturnsStartCancelAndRespondActions(): void
     {
         $task = new Task(1);
 
@@ -82,6 +82,7 @@ final class TaskTest extends TestCase
             [
                 Task::ACTION_START => 'Начать задание',
                 Task::ACTION_CANCEL => 'Отменить задание',
+                Task::ACTION_RESPOND => 'Откликнуться на задание'
             ];
         $status = Task::STATUS_NEW;
 
@@ -95,7 +96,7 @@ final class TaskTest extends TestCase
         $expectedActions =
             [
                 Task::ACTION_FINISH => 'Завершить задание',
-                Task::ACTION_REJECT => 'Отказаться от задания',
+                Task::ACTION_GIVE_UP => 'Отказаться от задания',
             ];
         $status = Task::STATUS_RUNNING;
 
@@ -129,13 +130,13 @@ final class TaskTest extends TestCase
         $this->assertEmpty($task->getActions($status));
     }
 
-    public function testInvalidStatusTaskReturnsFalse(): void
+    public function testInvalidStatusTaskReturnsEmptyActions(): void
     {
         $task = new Task(1);
 
         $status = 'some_invalid_status';
 
-        $this->assertFalse($task->getActions($status));
+        $this->assertEmpty($task->getActions($status));
     }
 
     public function testAppliedInvalidActionReturnsFalse(): void
@@ -185,28 +186,24 @@ final class TaskTest extends TestCase
 
     public function testFinishActionChangesTaskStatusToFinished(): void
     {
-        $task = new Task(1);
+        $task = new Task(1, Task::STATUS_RUNNING);
 
-        $actions = [Task::ACTION_START, Task::ACTION_FINISH];
+        $action = Task::ACTION_FINISH;
         $expectedStatus = Task::STATUS_FINISHED;
 
-        foreach ($actions as $action) {
-            $task->applyAction($action);
-        }
+        $task->applyAction($action);
 
         $this->assertSame($expectedStatus, $task->getStatus());
     }
 
     public function testRejectActionChangesTaskStatusToFailed(): void
     {
-        $task = new Task(1);
+        $task = new Task(1, Task::STATUS_RUNNING);
 
-        $actions = [Task::ACTION_START, Task::ACTION_REJECT];
+        $action = Task::ACTION_GIVE_UP;
         $expectedStatus = Task::STATUS_FAILED;
 
-        foreach ($actions as $action) {
-            $task->applyAction($action);
-        }
+        $task->applyAction($action);
 
         $this->assertSame($expectedStatus, $task->getStatus());
     }

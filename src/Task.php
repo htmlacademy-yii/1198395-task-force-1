@@ -21,7 +21,7 @@ class Task
     public const string ACTION_GIVE_UP = 'action_give_up';
     public const string ACTION_FINISH = 'action_finish';
 
-    private ?string $status;
+    private string $status;
     private ?int $executorId;
     private int $authorId;
 
@@ -52,11 +52,11 @@ class Task
     /**
      * Получает id исполнителя задания.
      *
-     * @return int Id исполнителя.
+     * @return int|null Id исполнителя или null.
      */
-    public function getContractorId(): int
+    public function getExecutorId(): int|null
     {
-        return $this->contractorId;
+        return $this->executorId;
     }
 
     /**
@@ -66,7 +66,7 @@ class Task
      */
     public function getOwnerId(): int
     {
-        return $this->ownerId;
+        return $this->authorId;
     }
 
     /**
@@ -79,10 +79,11 @@ class Task
     public function getNextStatus(string $action): string|false
     {
         return match($action) {
+            self::ACTION_RESPOND => self::STATUS_NEW,
             self::ACTION_START => self::STATUS_RUNNING,
             self::ACTION_CANCEL => self::STATUS_CANCELED,
             self::ACTION_FINISH => self::STATUS_FINISHED,
-            self::ACTION_REJECT => self::STATUS_FAILED,
+            self::ACTION_GIVE_UP => self::STATUS_FAILED,
             default => false,
         };
     }
@@ -92,32 +93,32 @@ class Task
      *
      * @param string $status Статус задания.
      *
-     * @return array|false Массив с действиями, либо `false`, если переданного статуса нет в классе.
+     * @return array Массив с действиями.
      */
-    public function getActions(string $status): array|false
+    public function getActions(string $status): array
     {
         return match($status) {
             self::STATUS_NEW =>
                 [
                     self::ACTION_START => 'Начать задание',
                     self::ACTION_CANCEL => 'Отменить задание',
+                    self::ACTION_RESPOND => 'Откликнуться на задание'
                 ],
             self::STATUS_RUNNING =>
                 [
                     self::ACTION_FINISH => 'Завершить задание',
-                    self::ACTION_REJECT => 'Отказаться от задания',
+                    self::ACTION_GIVE_UP => 'Отказаться от задания',
                 ],
-            self::STATUS_CANCELED, self::STATUS_FINISHED, self::STATUS_FAILED => [],
-            default => false,
+            default => [],
         };
     }
 
     /**
      * Получает доступные действия для текущего статуса задания.
      *
-     * @return array|false Доступные действия.
+     * @return array Доступные действия.
      */
-    public function getCurrentActions(): array|false
+    public function getCurrentActions(): array
     {
         return $this->getActions($this->status);
     }
