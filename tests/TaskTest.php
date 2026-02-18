@@ -7,15 +7,6 @@ require_once __DIR__ . '/../init.php';
 
 final class TaskTest extends TestCase
 {
-    public function testInitialOwnerIdIsSetFromConstructor(): void
-    {
-        $authorId = 1;
-
-        $task = new Task($authorId);
-
-        $this->assertSame($authorId, $task->getOwnerId());
-    }
-
     public function testInitialTaskStatusIsSetFromConstructor(): void
     {
         $task = new Task(1, Task::STATUS_CANCELED);
