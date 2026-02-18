@@ -15,23 +15,28 @@ class Task
     public const string STATUS_FINISHED = 'status_finished';
     public const string STATUS_FAILED = 'status_failed';
 
+    public const string ACTION_RESPOND = 'action_respond';
     public const string ACTION_START = 'action_start';
     public const string ACTION_CANCEL = 'action_cancel';
-    public const string ACTION_REJECT = 'action_reject';
+    public const string ACTION_GIVE_UP = 'action_give_up';
     public const string ACTION_FINISH = 'action_finish';
 
-    private string $status = self::STATUS_NEW;
-    private int $contractorId = 0;
-    private int $ownerId;
+    private ?string $status;
+    private ?int $executorId;
+    private int $authorId;
 
     /**
      * Создаёт экземпляр класса Task.
      *
-     * @param int $ownerId Id заказчика.
+     * @param int $authorId Id заказчика.
+     * @param ?string $status Статус задания. По умолчанию задание создаётся в статусе `STATUS_NEW`.
+     * @param ?int $executorId Id исполнителя. По умолчанию `null`.
      */
-    public function __construct(int $ownerId)
+    public function __construct(int $authorId, ?string $status = self::STATUS_NEW, ?int $executorId = null)
     {
-        $this->ownerId = $ownerId;
+        $this->authorId = $authorId;
+        $this->status = $status;
+        $this->executorId = $executorId;
     }
 
     /**
