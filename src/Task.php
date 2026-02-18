@@ -78,7 +78,7 @@ class Task
      */
     public function getNextStatus(string $action): string|false
     {
-        return match($action) {
+        return match ($action) {
             self::ACTION_RESPOND => self::STATUS_NEW,
             self::ACTION_START => self::STATUS_RUNNING,
             self::ACTION_CANCEL => self::STATUS_CANCELED,
@@ -97,18 +97,18 @@ class Task
      */
     public function getActions(string $status): array
     {
-        return match($status) {
+        return match ($status) {
             self::STATUS_NEW =>
-                [
-                    self::ACTION_START => 'Начать задание',
-                    self::ACTION_CANCEL => 'Отменить задание',
-                    self::ACTION_RESPOND => 'Откликнуться на задание'
-                ],
+            [
+                self::ACTION_START => 'Начать задание',
+                self::ACTION_CANCEL => 'Отменить задание',
+                self::ACTION_RESPOND => 'Откликнуться на задание'
+            ],
             self::STATUS_RUNNING =>
-                [
-                    self::ACTION_FINISH => 'Завершить задание',
-                    self::ACTION_GIVE_UP => 'Отказаться от задания',
-                ],
+            [
+                self::ACTION_FINISH => 'Завершить задание',
+                self::ACTION_GIVE_UP => 'Отказаться от задания',
+            ],
             default => [],
         };
     }
