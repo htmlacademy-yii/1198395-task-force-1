@@ -11,47 +11,11 @@ CREATE TABLE IF NOT EXISTS categories
     specialty VARCHAR(128) NOT NULL
     );
 
-CREATE TABLE IF NOT EXISTS tasks
-(
-    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
-    author_id   INT UNSIGNED NOT NULL,
-    executor_id INT UNSIGNED,
-    name        VARCHAR(256) NOT NULL,
-    description TEXT         NOT NULL,
-    category_id INT UNSIGNED NOT NULL,
-    coordinates VARCHAR(256),
-    city_id     INT UNSIGNED,
-    budget      INT UNSIGNED,
-    expire_date DATE,
-    status_id   INT UNSIGNED NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users (id),
-    FOREIGN KEY (category_id) REFERENCES categories (id),
-    FOREIGN KEY (city_id) REFERENCES cities (id)
-    FOREIGN KEY (status_id) REFERENCES task_statuses (id)
-    );
-
-CREATE TABLE IF NOT EXISTS task_statuses
-(
-    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
-    name        VARCHAR(256) NOT NULL
-    );
-
-CREATE TABLE IF NOT EXISTS task_files
-(
-    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
-    task_id     INT UNSIGNED NOT NULL,
-    url         VARCHAR(256) NOT NULL,
-    FOREIGN KEY (task_id) REFERENCES tasks (id),
-    );
-
 CREATE TABLE IF NOT EXISTS cities
 (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
-    name        VARCHAR(256) NOT NULL,
+    name        VARCHAR(256) NOT NULL
     );
 
 CREATE TABLE IF NOT EXISTS users
@@ -70,6 +34,35 @@ CREATE TABLE IF NOT EXISTS users
     about       TEXT
     );
 
+CREATE TABLE IF NOT EXISTS tasks
+(
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    author_id   INT UNSIGNED NOT NULL,
+    executor_id INT UNSIGNED,
+    name        VARCHAR(256) NOT NULL,
+    description TEXT         NOT NULL,
+    category_id INT UNSIGNED NOT NULL,
+    coordinates VARCHAR(256),
+    city_id     INT UNSIGNED,
+    budget      INT UNSIGNED,
+    expire_date DATE,
+    status      VARCHAR(256) NOT NULL,
+    FOREIGN KEY (author_id) REFERENCES users (id),
+    FOREIGN KEY (executor_id) REFERENCES users (id),
+    FOREIGN KEY (category_id) REFERENCES categories (id),
+    FOREIGN KEY (city_id) REFERENCES cities (id)
+    );
+
+CREATE TABLE IF NOT EXISTS task_files
+(
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    task_id     INT UNSIGNED NOT NULL,
+    url         VARCHAR(256) NOT NULL,
+    FOREIGN KEY (task_id) REFERENCES tasks (id)
+    );
+
 CREATE TABLE IF NOT EXISTS user_specialties
 (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -84,11 +77,15 @@ CREATE TABLE IF NOT EXISTS reviews
 (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    author_id   INT UNSIGNED NOT NULL,
+    executor_id INT UNSIGNED NOT NULL,
     task_id     INT UNSIGNED NOT NULL,
     comment     TEXT NOT NULL,
     rating      INT UNSIGNED NOT NULL,
     CONSTRAINT  chk_rating CHECK (rating BETWEEN 1 AND 5),
     FOREIGN KEY (task_id) REFERENCES tasks (id),
+    FOREIGN KEY (author_id) REFERENCES users (id),
+    FOREIGN KEY (executor_id) REFERENCES users (id)
     );
 
 CREATE TABLE IF NOT EXISTS responds
@@ -96,11 +93,11 @@ CREATE TABLE IF NOT EXISTS responds
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
     task_id     INT UNSIGNED NOT NULL,
-    comment     TEXT NOT NULL,
     executor_id INT UNSIGNED NOT NULL,
-    payment     INT UNSIGNED NOT NULL,
+    comment     TEXT,
+    payment     INT UNSIGNED,
     FOREIGN KEY (task_id) REFERENCES tasks (id),
-    FOREIGN KEY (executor_id) REFERENCES users (id),
+    FOREIGN KEY (executor_id) REFERENCES users (id)
     );
 
 CREATE INDEX u_date ON users (created_at);
