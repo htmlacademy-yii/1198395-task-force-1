@@ -15,12 +15,6 @@ class Task
     public const string STATUS_FINISHED = 'status_finished';
     public const string STATUS_FAILED = 'status_failed';
 
-    public const string ACTION_RESPOND = 'action_respond';
-    public const string ACTION_START = 'action_start';
-    public const string ACTION_CANCEL = 'action_cancel';
-    public const string ACTION_GIVE_UP = 'action_give_up';
-    public const string ACTION_FINISH = 'action_finish';
-
     private string $status;
     private ?int $executorId;
     private int $authorId;
@@ -29,10 +23,10 @@ class Task
      * Создаёт экземпляр класса Task.
      *
      * @param int $authorId Id заказчика.
-     * @param ?string $status Статус задания. По умолчанию задание создаётся в статусе `STATUS_NEW`.
+     * @param string $status Статус задания. По умолчанию задание создаётся в статусе `STATUS_NEW`.
      * @param ?int $executorId Id исполнителя. По умолчанию `null`.
      */
-    public function __construct(int $authorId, ?string $status = self::STATUS_NEW, ?int $executorId = null)
+    public function __construct(int $authorId, string $status = self::STATUS_NEW, ?int $executorId = null)
     {
         $this->authorId = $authorId;
         $this->status = $status;
@@ -76,10 +70,10 @@ class Task
      *
      * @return string|false Статус задания, либо `false`, если действие невозможно.
      */
-    public function getNextStatus(string $action): string|false
+    public function getNextStatus(AbstractAction $action): string|false
     {
-        return match ($action) {
-            self::ACTION_RESPOND => self::STATUS_NEW,
+        return match (true) {
+            $action instanceof(RespondAction) => self::STATUS_NEW,
             self::ACTION_START => self::STATUS_ACTIVE,
             self::ACTION_CANCEL => self::STATUS_CANCELED,
             self::ACTION_FINISH => self::STATUS_FINISHED,
