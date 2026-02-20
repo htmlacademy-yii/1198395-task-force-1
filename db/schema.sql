@@ -6,16 +6,18 @@ USE taskforce;
 
 CREATE TABLE IF NOT EXISTS categories
 (
-    id        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    name      VARCHAR(128) NOT NULL,
-    specialty VARCHAR(128) NOT NULL
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    name        VARCHAR(128) NOT NULL
     );
 
 CREATE TABLE IF NOT EXISTS cities
 (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
-    name        VARCHAR(256) NOT NULL
+    name        VARCHAR(256) NOT NULL,
+    latitude    DECIMAL NOT NULL,
+    longitude   DECIMAL NOT NULL
     );
 
 CREATE TABLE IF NOT EXISTS users
@@ -25,12 +27,12 @@ CREATE TABLE IF NOT EXISTS users
     email       VARCHAR(256) NOT NULL UNIQUE,
     name        VARCHAR(256) NOT NULL,
     city_id     INT UNSIGNED NOT NULL,
-    password    CHAR(60)     NOT NULL,
+    password    CHAR(128)     NOT NULL,
     is_executor BOOLEAN      NOT NULL,
-    img_url     VARCHAR(256),
+    profile_img VARCHAR(256),
     birthday    DATE,
-    tel_number  VARCHAR(11),
-    telegram    VARCHAR(64),
+    phone       CHAR(11),
+    telegram    CHAR(64),
     about       TEXT
     );
 
@@ -43,11 +45,13 @@ CREATE TABLE IF NOT EXISTS tasks
     name        VARCHAR(256) NOT NULL,
     description TEXT         NOT NULL,
     category_id INT UNSIGNED NOT NULL,
-    coordinates VARCHAR(256),
+    location    VARCHAR(256) NOT NULL,
+    latitude    DECIMAL,
+    longitude   DECIMAL,
     city_id     INT UNSIGNED,
     budget      INT UNSIGNED,
     expire_date DATE,
-    status      VARCHAR(256) NOT NULL,
+    status      ENUM('status_new', 'status_canceled', 'status_active', 'status_finished', 'status_failed'),
     FOREIGN KEY (author_id) REFERENCES users (id),
     FOREIGN KEY (executor_id) REFERENCES users (id),
     FOREIGN KEY (category_id) REFERENCES categories (id),
@@ -63,7 +67,7 @@ CREATE TABLE IF NOT EXISTS task_files
     FOREIGN KEY (task_id) REFERENCES tasks (id)
     );
 
-CREATE TABLE IF NOT EXISTS user_specialties
+CREATE TABLE IF NOT EXISTS user_categories
 (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -95,7 +99,8 @@ CREATE TABLE IF NOT EXISTS responds
     task_id     INT UNSIGNED NOT NULL,
     executor_id INT UNSIGNED NOT NULL,
     comment     TEXT,
-    payment     INT UNSIGNED,
+    price       INT UNSIGNED,
+    rejected    BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (task_id) REFERENCES tasks (id),
     FOREIGN KEY (executor_id) REFERENCES users (id)
     );

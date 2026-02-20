@@ -11,7 +11,7 @@ class Task
 {
     public const string STATUS_NEW = 'status_new';
     public const string STATUS_CANCELED = 'status_canceled';
-    public const string STATUS_RUNNING = 'status_running';
+    public const string STATUS_ACTIVE = 'status_active';
     public const string STATUS_FINISHED = 'status_finished';
     public const string STATUS_FAILED = 'status_failed';
 
@@ -80,7 +80,7 @@ class Task
     {
         return match ($action) {
             self::ACTION_RESPOND => self::STATUS_NEW,
-            self::ACTION_START => self::STATUS_RUNNING,
+            self::ACTION_START => self::STATUS_ACTIVE,
             self::ACTION_CANCEL => self::STATUS_CANCELED,
             self::ACTION_FINISH => self::STATUS_FINISHED,
             self::ACTION_GIVE_UP => self::STATUS_FAILED,
@@ -102,9 +102,9 @@ class Task
             [
                 self::ACTION_START => 'Начать задание',
                 self::ACTION_CANCEL => 'Отменить задание',
-                self::ACTION_RESPOND => 'Откликнуться на задание'
+                self::ACTION_RESPOND => 'Откликнуться на задание',
             ],
-            self::STATUS_RUNNING =>
+            self::STATUS_ACTIVE =>
             [
                 self::ACTION_FINISH => 'Завершить задание',
                 self::ACTION_GIVE_UP => 'Отказаться от задания',
