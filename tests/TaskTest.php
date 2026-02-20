@@ -16,11 +16,11 @@ final class TaskTest extends TestCase
         $this->assertSame($expectedStatus, $task->getStatus());
     }
 
-    public function testNextStatusAfterStartIsRunning(): void
+    public function testNextStatusAfterStartIsActive(): void
     {
         $task = new Task(1);
 
-        $expectedStatus = Task::STATUS_RUNNING;
+        $expectedStatus = Task::STATUS_ACTIVE;
         $action = Task::ACTION_START;
 
         $this->assertSame($expectedStatus, $task->getNextStatus($action));
@@ -73,14 +73,14 @@ final class TaskTest extends TestCase
             [
                 Task::ACTION_START => 'Начать задание',
                 Task::ACTION_CANCEL => 'Отменить задание',
-                Task::ACTION_RESPOND => 'Откликнуться на задание'
+                Task::ACTION_RESPOND => 'Откликнуться на задание',
             ];
         $status = Task::STATUS_NEW;
 
         $this->assertSame($expectedActions, $task->getActions($status));
     }
 
-    public function testRunningTaskReturnsFinishAndRejectActions(): void
+    public function testActiveTaskReturnsFinishAndRejectActions(): void
     {
         $task = new Task(1);
 
@@ -89,7 +89,7 @@ final class TaskTest extends TestCase
                 Task::ACTION_FINISH => 'Завершить задание',
                 Task::ACTION_GIVE_UP => 'Отказаться от задания',
             ];
-        $status = Task::STATUS_RUNNING;
+        $status = Task::STATUS_ACTIVE;
 
         $this->assertSame($expectedActions, $task->getActions($status));
     }
@@ -151,12 +151,12 @@ final class TaskTest extends TestCase
         $this->assertSame($currentStatus, $task->getStatus());
     }
 
-    public function testStartActionChangesTaskStatusToRunning(): void
+    public function testStartActionChangesTaskStatusToActive(): void
     {
         $task = new Task(1);
 
         $action = Task::ACTION_START;
-        $expectedStatus = Task::STATUS_RUNNING;
+        $expectedStatus = Task::STATUS_ACTIVE;
 
         $task->applyAction($action);
 
@@ -177,7 +177,7 @@ final class TaskTest extends TestCase
 
     public function testFinishActionChangesTaskStatusToFinished(): void
     {
-        $task = new Task(1, Task::STATUS_RUNNING);
+        $task = new Task(1, Task::STATUS_ACTIVE);
 
         $action = Task::ACTION_FINISH;
         $expectedStatus = Task::STATUS_FINISHED;
@@ -189,7 +189,7 @@ final class TaskTest extends TestCase
 
     public function testRejectActionChangesTaskStatusToFailed(): void
     {
-        $task = new Task(1, Task::STATUS_RUNNING);
+        $task = new Task(1, Task::STATUS_ACTIVE);
 
         $action = Task::ACTION_GIVE_UP;
         $expectedStatus = Task::STATUS_FAILED;
