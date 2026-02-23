@@ -1,12 +1,12 @@
 {
-    "name": "task-force/task-force",
-    "type": "project",
-    "require-dev": {
-        "phpunit/phpunit": "^13"
-    },
-    "autoload": {
-        "psr-4": {
-            "TaskForce\\": "src/"
-        }
+  "name": "task-force/task-force",
+  "type": "project",
+  "require-dev": {
+    "phpunit/phpunit": "^13"
+  },
+  "autoload": {
+    "psr-4": {
+      "TaskForce\\": "src/"
     }
+  }
 }

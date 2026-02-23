@@ -1,6 +1,11 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
+use TaskForce\actions\CancelAction;
+use TaskForce\actions\FinishAction;
+use TaskForce\actions\StartAction;
+use TaskForce\actions\RefuseAction;
+use TaskForce\actions\RespondAction;
 use TaskForce\Task;
 
 require_once __DIR__ . '/../init.php';
@@ -9,193 +14,204 @@ final class TaskTest extends TestCase
 {
     public function testInitialTaskStatusIsSetFromConstructor(): void
     {
-        $task = new Task(1, Task::STATUS_CANCELED);
+        $this->assertSame(
+            Task::STATUS_NEW,
+            new Task(1, Task::STATUS_NEW)->status
+        );
+        $this->assertSame(
+            Task::STATUS_ACTIVE,
+            new Task(1, Task::STATUS_ACTIVE)->status
+        );
+        $this->assertSame(
+            Task::STATUS_CANCELED,
+            new Task(1, Task::STATUS_CANCELED)->status
+        );
+        $this->assertSame(
+            Task::STATUS_FAILED,
+            new Task(1, Task::STATUS_FAILED)->status
+        );
+        $this->assertSame(
+            Task::STATUS_FINISHED,
+            new Task(1, Task::STATUS_FINISHED)->status
+        );
+    }
 
-        $expectedStatus = Task::STATUS_CANCELED;
-
-        $this->assertSame($expectedStatus, $task->getStatus());
+    public function testNextStatusAfterRespondIsNew(): void
+    {
+        $this->assertSame(
+            Task::STATUS_NEW,
+            new Task(1)->getNextStatus(new RespondAction())
+        );
     }
 
     public function testNextStatusAfterStartIsActive(): void
     {
-        $task = new Task(1);
-
-        $expectedStatus = Task::STATUS_ACTIVE;
-        $action = Task::ACTION_START;
-
-        $this->assertSame($expectedStatus, $task->getNextStatus($action));
+        $this->assertSame(
+            Task::STATUS_ACTIVE,
+            new Task(1)->getNextStatus(new StartAction())
+        );
     }
 
     public function testNextStatusAfterCancelIsCanceled(): void
     {
-        $task = new Task(1);
-
-        $expectedStatus = Task::STATUS_CANCELED;
-        $action = Task::ACTION_CANCEL;
-
-        $this->assertSame($expectedStatus, $task->getNextStatus($action));
+        $this->assertSame(
+            Task::STATUS_CANCELED,
+            new Task(1)->getNextStatus(new CancelAction())
+        );
     }
 
     public function testNextStatusAfterFinishIsFinished(): void
     {
-        $task = new Task(1);
-
-        $expectedStatus = Task::STATUS_FINISHED;
-        $action = Task::ACTION_FINISH;
-
-        $this->assertSame($expectedStatus, $task->getNextStatus($action));
+        $this->assertSame(
+            Task::STATUS_FINISHED,
+            new Task(1)->getNextStatus(new FinishAction())
+        );
     }
 
-    public function testNextStatusAfterRejectIsFailed(): void
+    public function testNextStatusAfterRefuseIsFailed(): void
     {
-        $task = new Task(1);
-
-        $expectedStatus = Task::STATUS_FAILED;
-        $action = Task::ACTION_GIVE_UP;
-
-        $this->assertSame($expectedStatus, $task->getNextStatus($action));
+        $this->assertSame(
+            Task::STATUS_FAILED,
+            new Task(1)->getNextStatus(new RefuseAction())
+        );
     }
 
-    public function testNextStatusReturnsFalseIfInvalidActionIsApplied(): void
+    public function testNewTaskReturnsStartAndCancelActionsForAuthor(): void
     {
-        $task = new Task(1);
+        $taskActions = new Task(1)->getActions(1);
 
-        $status = 'some_invalid_status';
-
-        $this->assertFalse($task->getNextStatus($status));
+        $this->assertSame(
+            [new StartAction()->getName(), new CancelAction()->getName()],
+            array_map(function ($action) {
+                return $action->getName();
+            }, $taskActions)
+        );
     }
 
-    public function testNewTaskReturnsStartCancelAndRespondActions(): void
+    public function testNewTaskReturnsRespondActionForExecutor(): void
     {
-        $task = new Task(1);
+        $taskActions = new Task(1)->getActions(2);
 
-        $expectedActions =
-            [
-                Task::ACTION_START => 'Начать задание',
-                Task::ACTION_CANCEL => 'Отменить задание',
-                Task::ACTION_RESPOND => 'Откликнуться на задание',
-            ];
-        $status = Task::STATUS_NEW;
-
-        $this->assertSame($expectedActions, $task->getActions($status));
+        $this->assertEqualsCanonicalizing(
+            [new RespondAction()->getName()],
+            array_map(function ($action) {
+                return $action->getName();
+            }, $taskActions)
+        );
     }
 
-    public function testActiveTaskReturnsFinishAndRejectActions(): void
+    public function testActiveTaskReturnsFinishActionForAuthor(): void
     {
-        $task = new Task(1);
+        $taskActions = new Task(1, Task::STATUS_ACTIVE)->getActions(1);
 
-        $expectedActions =
-            [
-                Task::ACTION_FINISH => 'Завершить задание',
-                Task::ACTION_GIVE_UP => 'Отказаться от задания',
-            ];
-        $status = Task::STATUS_ACTIVE;
+        $this->assertEqualsCanonicalizing(
+            [new FinishAction()->getName()],
+            array_map(function ($action) {
+                return $action->getName();
+            }, $taskActions)
+        );
+    }
 
-        $this->assertSame($expectedActions, $task->getActions($status));
+    public function testActiveTaskReturnsRefuseActionForExecutor(): void
+    {
+        $taskActions = new Task(1, Task::STATUS_ACTIVE, 2)->getActions(2);
+
+        $this->assertEqualsCanonicalizing(
+            [new RefuseAction()->getName()],
+            array_map(function ($action) {
+                return $action->getName();
+            }, $taskActions)
+        );
     }
 
     public function testFinishedTaskReturnsEmptyActions(): void
     {
-        $task = new Task(1);
-
-        $status = Task::STATUS_FINISHED;
-
-        $this->assertEmpty($task->getActions($status));
+        $this->assertEmpty(
+            new Task(1, Task::STATUS_FINISHED)->getActions(1)
+        );
     }
 
     public function testCanceledTaskReturnsEmptyActions(): void
     {
-        $task = new Task(1);
-
-        $status = Task::STATUS_CANCELED;
-
-        $this->assertEmpty($task->getActions($status));
+        $this->assertEmpty(
+            new Task(1, Task::STATUS_CANCELED)->getActions(1)
+        );
     }
 
     public function testFailedTaskReturnsEmptyActions(): void
     {
-        $task = new Task(1);
-
-        $status = Task::STATUS_FAILED;
-
-        $this->assertEmpty($task->getActions($status));
+        $this->assertEmpty(
+            new Task(1, Task::STATUS_FAILED)->getActions(1)
+        );
     }
 
-    public function testInvalidStatusTaskReturnsEmptyActions(): void
+    public function testRespondActionAppliesOnlyOnNewTasks(): void
     {
-        $task = new Task(1);
-
-        $status = 'some_invalid_status';
-
-        $this->assertEmpty($task->getActions($status));
+        $this->assertTrue(
+            new Task(1)->applyAction(
+                new RespondAction(),
+                ['userId' => 2, 'executorId' => 2]
+            )
+        );
+        $this->assertFalse(
+            new Task(1, Task::STATUS_ACTIVE)->applyAction(
+                new RespondAction(),
+                ['userId' => 2, 'executorId' => 2]
+            )
+        );
     }
 
-    public function testAppliedInvalidActionReturnsFalse(): void
+    public function testRespondActionAppliesOnlyWhenExecutorIsNotSet(): void
     {
-        $task = new Task(1);
-
-        $action = 'some_invalid_action';
-
-        $this->assertFalse($task->applyAction($action));
-    }
-
-    public function testAppliedInvalidActionDoesNotChangeStatus(): void
-    {
-        $task = new Task(1);
-        $currentStatus = $task->getStatus();
-
-        $action = 'some_invalid_action';
-
-        $task->applyAction($action);
-
-        $this->assertSame($currentStatus, $task->getStatus());
+        $this->assertFalse(
+            new Task(1, Task::STATUS_NEW, 3)->applyAction(
+                new RespondAction(),
+                ['userId' => 2, 'executorId' => 2]
+            )
+        );
     }
 
     public function testStartActionChangesTaskStatusToActive(): void
     {
         $task = new Task(1);
-
-        $action = Task::ACTION_START;
-        $expectedStatus = Task::STATUS_ACTIVE;
-
-        $task->applyAction($action);
-
-        $this->assertSame($expectedStatus, $task->getStatus());
+        $task->applyAction(new StartAction(), ['userId' => 1, 'executorId' => 2]
+        );
+        $this->assertSame(
+            Task::STATUS_ACTIVE,
+            $task->status
+        );
     }
 
     public function testCancelActionChangesTaskStatusToCanceled(): void
     {
         $task = new Task(1);
-
-        $action = Task::ACTION_CANCEL;
-        $expectedStatus = Task::STATUS_CANCELED;
-
-        $task->applyAction($action);
-
-        $this->assertSame($expectedStatus, $task->getStatus());
+        $task->applyAction(new CancelAction(), ['userId' => 1]
+        );
+        $this->assertSame(
+            Task::STATUS_CANCELED,
+            $task->status
+        );
     }
 
     public function testFinishActionChangesTaskStatusToFinished(): void
     {
         $task = new Task(1, Task::STATUS_ACTIVE);
-
-        $action = Task::ACTION_FINISH;
-        $expectedStatus = Task::STATUS_FINISHED;
-
-        $task->applyAction($action);
-
-        $this->assertSame($expectedStatus, $task->getStatus());
+        $task->applyAction(new FinishAction(), ['userId' => 1]
+        );
+        $this->assertSame(
+            Task::STATUS_FINISHED,
+            $task->status
+        );
     }
 
-    public function testRejectActionChangesTaskStatusToFailed(): void
+    public function testRefuseActionChangesTaskStatusToFailed(): void
     {
-        $task = new Task(1, Task::STATUS_ACTIVE);
-
-        $action = Task::ACTION_GIVE_UP;
-        $expectedStatus = Task::STATUS_FAILED;
-
-        $task->applyAction($action);
-
-        $this->assertSame($expectedStatus, $task->getStatus());
+        $task = new Task(1, Task::STATUS_ACTIVE, 2);
+        $task->applyAction(new RefuseAction(), ['userId' => 2]
+        );
+        $this->assertSame(
+            Task::STATUS_FAILED,
+            $task->status
+        );
     }
 }
