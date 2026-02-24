@@ -38,7 +38,7 @@ class Task
     public function __construct(
         int $authorId,
         string $status = self::STATUS_NEW,
-        ?int $executorId = null
+        ?int $executorId = null,
     ) {
         $this->authorId = $authorId;
         $this->status = $status;
@@ -53,7 +53,8 @@ class Task
      * @return string Статус задания, либо пустая строка,
      * если действие не предусмотрено.
      */
-    public function getNextStatus(AbstractAction $action
+    public function getNextStatus(
+        AbstractAction $action,
     ): string {
         return match ($action->getName()) {
             new RespondAction()->getName() => self::STATUS_NEW,
@@ -66,15 +67,16 @@ class Task
     }
 
     /**
-     * Получает доступные действия над заданием для пользователя по Id.
+     * Получает доступные действия над заданием для пользователя по статусу задания и Id.
      *
+     * @param string $status Статус задания.
      * @param int $userId Id пользователя.
      *
      * @return array Массив с объектами-потомками класса AbstractAction.
      */
-    public function getActions(int $userId): array
+    public function getActions(string $status, int $userId): array
     {
-        $actions = match ($this->status) {
+        $actions = match ($status) {
             self::STATUS_NEW =>
             [
                 new StartAction(),
@@ -93,7 +95,7 @@ class Task
             return $action->checkRights(
                 $this->executorId,
                 $this->authorId,
-                $userId
+                $userId,
             );
         });
     }
@@ -111,10 +113,12 @@ class Task
         $result = false;
 
         if (isset($data['userId'])) {
-            $currentActionsNames = array_map(function ($action) {
-                return $action->getName();
-            },
-                $this->getActions($data['userId']));
+            $currentActionsNames = array_map(
+                function ($action) {
+                    return $action->getName();
+                },
+                $this->getActions($this->status, $data['userId']),
+            );
 
             if (in_array($action->getName(), $currentActionsNames)
             ) {
