@@ -2,10 +2,18 @@
 
 namespace TaskForce;
 
+use TaskForce\Actions\AbstractAction;
+use TaskForce\Actions\CancelAction;
+use TaskForce\Actions\FinishAction;
+use TaskForce\Actions\RefuseAction;
+use TaskForce\Actions\RespondAction;
+use TaskForce\Actions\StartAction;
+
 /**
  * Задание - центральная сущность приложения TaskForce.
  *
- * Хранит состояние задания, доступные действия с ним, id заказчика и исполнителя.
+ * Хранит состояние задания, доступные действия с ним,
+ * id заказчика и исполнителя.
  */
 class Task
 {
@@ -15,130 +23,114 @@ class Task
     public const string STATUS_FINISHED = 'status_finished';
     public const string STATUS_FAILED = 'status_failed';
 
-    public const string ACTION_RESPOND = 'action_respond';
-    public const string ACTION_START = 'action_start';
-    public const string ACTION_CANCEL = 'action_cancel';
-    public const string ACTION_GIVE_UP = 'action_give_up';
-    public const string ACTION_FINISH = 'action_finish';
-
-    private string $status;
+    public string $status;
     private ?int $executorId;
     private int $authorId;
 
     /**
      * Создаёт экземпляр класса Task.
      *
-     * @param int $authorId Id заказчика.
-     * @param ?string $status Статус задания. По умолчанию задание создаётся в статусе `STATUS_NEW`.
-     * @param ?int $executorId Id исполнителя. По умолчанию `null`.
+     * @param int    $authorId   Id заказчика.
+     * @param string $status     Статус задания. По умолчанию задание
+     *                           создаётся в статусе `STATUS_NEW`.
+     * @param ?int   $executorId Id исполнителя. По умолчанию `null`.
      */
-    public function __construct(int $authorId, ?string $status = self::STATUS_NEW, ?int $executorId = null)
-    {
+    public function __construct(
+        int $authorId,
+        string $status = self::STATUS_NEW,
+        ?int $executorId = null,
+    ) {
         $this->authorId = $authorId;
         $this->status = $status;
         $this->executorId = $executorId;
     }
 
     /**
-     * Получает текущий статус задания.
-     *
-     * @return string Текущий статус.
-     */
-    public function getStatus(): string
-    {
-        return $this->status;
-    }
-
-    /**
-     * Получает id исполнителя задания.
-     *
-     * @return int|null Id исполнителя или null.
-     */
-    public function getExecutorId(): int|null
-    {
-        return $this->executorId;
-    }
-
-    /**
-     * Получает id заказчика задания.
-     *
-     * @return int Id заказчика задания.
-     */
-    public function getOwnerId(): int
-    {
-        return $this->authorId;
-    }
-
-    /**
      * Получает статус, в который перейдёт задание после примененного действия.
      *
-     * @param string $action Действие с заданием.
+     * @param AbstractAction $action Объект класса AbstractAction
      *
-     * @return string|false Статус задания, либо `false`, если действие невозможно.
+     * @return string Статус задания, либо пустая строка,
+     * если действие не предусмотрено.
      */
-    public function getNextStatus(string $action): string|false
-    {
-        return match ($action) {
-            self::ACTION_RESPOND => self::STATUS_NEW,
-            self::ACTION_START => self::STATUS_ACTIVE,
-            self::ACTION_CANCEL => self::STATUS_CANCELED,
-            self::ACTION_FINISH => self::STATUS_FINISHED,
-            self::ACTION_GIVE_UP => self::STATUS_FAILED,
-            default => false,
+    public function getNextStatus(
+        AbstractAction $action,
+    ): string {
+        return match ($action->getName()) {
+            new RespondAction()->getName() => self::STATUS_NEW,
+            new StartAction()->getName() => self::STATUS_ACTIVE,
+            new CancelAction()->getName() => self::STATUS_CANCELED,
+            new FinishAction()->getName() => self::STATUS_FINISHED,
+            new RefuseAction()->getName() => self::STATUS_FAILED,
+            default => '',
         };
     }
 
     /**
-     * Получает доступные действия для переданного статуса задания.
+     * Получает доступные действия над заданием для пользователя по статусу задания и Id.
      *
      * @param string $status Статус задания.
+     * @param int    $userId Id пользователя.
      *
-     * @return array Массив с действиями.
+     * @return array Массив с объектами-потомками класса AbstractAction.
      */
-    public function getActions(string $status): array
+    public function getActions(string $status, int $userId): array
     {
-        return match ($status) {
+        $actions = match ($status) {
             self::STATUS_NEW =>
             [
-                self::ACTION_START => 'Начать задание',
-                self::ACTION_CANCEL => 'Отменить задание',
-                self::ACTION_RESPOND => 'Откликнуться на задание',
+                new StartAction(),
+                new CancelAction(),
+                new RespondAction(),
             ],
             self::STATUS_ACTIVE =>
             [
-                self::ACTION_FINISH => 'Завершить задание',
-                self::ACTION_GIVE_UP => 'Отказаться от задания',
+                new FinishAction(),
+                new RefuseAction(),
             ],
             default => [],
         };
-    }
 
-    /**
-     * Получает доступные действия для текущего статуса задания.
-     *
-     * @return array Доступные действия.
-     */
-    public function getCurrentActions(): array
-    {
-        return $this->getActions($this->status);
+        return array_filter($actions, function ($action) use ($userId) {
+            return $action->checkRights(
+                $this->executorId,
+                $this->authorId,
+                $userId,
+            );
+        });
     }
 
     /**
      * Применяет действие к заданию, если оно возможно для текущего статуса.
      *
-     * @param string $action Действие.
+     * @param AbstractAction $action Действие.
+     * @param array          $data   Данные о пользователе, применяющем действие.
      *
      * @return bool `true` - действие применилось, `false` - действие невозможно.
      */
-    public function applyAction(string $action): bool
+    public function applyAction(AbstractAction $action, array $data): bool
     {
         $result = false;
 
-        $currentActions = $this->getCurrentActions();
+        if (isset($data['userId'])) {
+            $currentActionsNames = array_map(
+                function ($action) {
+                    return $action->getName();
+                },
+                $this->getActions($this->status, $data['userId']),
+            );
 
-        if (array_key_exists($action, $currentActions)) {
-            $this->status = $this->getNextStatus($action);
-            $result = true;
+            if (in_array($action->getName(), $currentActionsNames)
+            ) {
+                if ($action->getName() === new StartAction()->getName()
+                    && isset($data['executorId'])
+                ) {
+                    $this->executorId = $data['executorId'];
+                }
+
+                $this->status = $this->getNextStatus($action);
+                $result = true;
+            }
         }
 
         return $result;

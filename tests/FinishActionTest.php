@@ -1,0 +1,24 @@
+<?php
+
+use PHPUnit\Framework\TestCase;
+use TaskForce\Actions\FinishAction;
+
+require_once __DIR__ . '/../init.php';
+
+final class FinishActionTest extends TestCase
+{
+    public function testFinishActionIsAvailableForAuthorOnly(): void
+    {
+        $authorId = 1;
+        $executorId = 2;
+        $userId = 1;
+
+        $this->assertTrue(
+            new FinishAction()->checkRights($executorId, $authorId, $userId)
+        );
+
+        $this->assertFalse(
+            new FinishAction()->checkRights($executorId, $authorId, 3)
+        );
+    }
+}
