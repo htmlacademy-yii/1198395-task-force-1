@@ -11,7 +11,6 @@ class CsvImporterSpl
 {
     protected string $file;
     protected SplFileObject $fileObj;
-    public const string BOM = "\xEF\xBB\xBF";
     protected SqlTableData $data;
 
     public function __construct(string $file)
@@ -32,7 +31,7 @@ class CsvImporterSpl
         }
 
         $this->data = new SqlTableData(
-            $this->fileObj->getFilename(),
+            $this->fileObj->getBasename('.csv'),
             $this->getHeaderData()
         );
 
@@ -53,7 +52,8 @@ class CsvImporterSpl
 
     private function getHeaderData(): ?array
     {
-        if (!$this->fileObj->fread(3) === self::BOM) {
+        $bom = pack('H*', 'EFBBBF');
+        if (!preg_match("/^$bom/", $this->fileObj->fread(3))) {
             $this->fileObj->rewind();
         }
 
