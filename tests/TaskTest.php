@@ -1,11 +1,11 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use TaskForce\actions\CancelAction;
-use TaskForce\actions\FinishAction;
-use TaskForce\actions\RefuseAction;
-use TaskForce\actions\RespondAction;
-use TaskForce\actions\StartAction;
+use TaskForce\Actions\CancelAction;
+use TaskForce\Actions\FinishAction;
+use TaskForce\Actions\RefuseAction;
+use TaskForce\Actions\RespondAction;
+use TaskForce\Actions\StartAction;
 use TaskForce\Task;
 
 require_once __DIR__ . '/../init.php';
@@ -102,7 +102,10 @@ final class TaskTest extends TestCase
 
     public function testActiveTaskReturnsFinishActionForAuthor(): void
     {
-        $taskActions = new Task(1, Task::STATUS_ACTIVE)->getActions(Task::STATUS_ACTIVE, 1);
+        $taskActions = new Task(1, Task::STATUS_ACTIVE)->getActions(
+            Task::STATUS_ACTIVE,
+            1
+        );
 
         $this->assertEqualsCanonicalizing(
             [new FinishAction()->getName()],
@@ -114,7 +117,10 @@ final class TaskTest extends TestCase
 
     public function testActiveTaskReturnsRefuseActionForExecutor(): void
     {
-        $taskActions = new Task(1, Task::STATUS_ACTIVE, 2)->getActions(Task::STATUS_ACTIVE, 2);
+        $taskActions = new Task(1, Task::STATUS_ACTIVE, 2)->getActions(
+            Task::STATUS_ACTIVE,
+            2
+        );
 
         $this->assertEqualsCanonicalizing(
             [new RefuseAction()->getName()],
@@ -127,21 +133,30 @@ final class TaskTest extends TestCase
     public function testFinishedTaskReturnsEmptyActions(): void
     {
         $this->assertEmpty(
-            new Task(1, Task::STATUS_FINISHED)->getActions(Task::STATUS_FINISHED, 1),
+            new Task(1, Task::STATUS_FINISHED)->getActions(
+                Task::STATUS_FINISHED,
+                1
+            ),
         );
     }
 
     public function testCanceledTaskReturnsEmptyActions(): void
     {
         $this->assertEmpty(
-            new Task(1, Task::STATUS_CANCELED)->getActions(Task::STATUS_CANCELED, 1),
+            new Task(1, Task::STATUS_CANCELED)->getActions(
+                Task::STATUS_CANCELED,
+                1
+            ),
         );
     }
 
     public function testFailedTaskReturnsEmptyActions(): void
     {
         $this->assertEmpty(
-            new Task(1, Task::STATUS_FAILED)->getActions(Task::STATUS_FAILED, 1),
+            new Task(1, Task::STATUS_FAILED)->getActions(
+                Task::STATUS_FAILED,
+                1
+            ),
         );
     }
 

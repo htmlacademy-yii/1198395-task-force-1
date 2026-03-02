@@ -1,7 +1,7 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use TaskForce\actions\RespondAction;
+use TaskForce\Actions\RespondAction;
 
 require_once __DIR__ . '/../init.php';
 

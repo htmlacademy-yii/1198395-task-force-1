@@ -1,17 +1,17 @@
 <?php
 
-namespace TaskForce\actions;
+namespace TaskForce\Actions;
 
-class RespondAction extends AbstractAction
+class StartAction extends AbstractAction
 {
     public function getName(): string
     {
-        return 'action_respond';
+        return 'action_start';
     }
 
     public function getDescription(): string
     {
-        return 'Откликнуться';
+        return 'Начать';
     }
 
     public function checkRights(
@@ -19,6 +19,6 @@ class RespondAction extends AbstractAction
         int $authorId,
         int $userId
     ): bool {
-        return is_null($executorId) && $userId !== $authorId;
+        return is_null($executorId) && $userId === $authorId;
     }
 }

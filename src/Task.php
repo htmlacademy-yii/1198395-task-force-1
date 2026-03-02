@@ -2,12 +2,12 @@
 
 namespace TaskForce;
 
-use TaskForce\actions\AbstractAction;
-use TaskForce\actions\CancelAction;
-use TaskForce\actions\FinishAction;
-use TaskForce\actions\RefuseAction;
-use TaskForce\actions\RespondAction;
-use TaskForce\actions\StartAction;
+use TaskForce\Actions\AbstractAction;
+use TaskForce\Actions\CancelAction;
+use TaskForce\Actions\FinishAction;
+use TaskForce\Actions\RefuseAction;
+use TaskForce\Actions\RespondAction;
+use TaskForce\Actions\StartAction;
 
 /**
  * Задание - центральная сущность приложения TaskForce.
@@ -70,7 +70,7 @@ class Task
      * Получает доступные действия над заданием для пользователя по статусу задания и Id.
      *
      * @param string $status Статус задания.
-     * @param int $userId Id пользователя.
+     * @param int    $userId Id пользователя.
      *
      * @return array Массив с объектами-потомками класса AbstractAction.
      */

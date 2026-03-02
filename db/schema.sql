@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS categories
 (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
-    name        VARCHAR(128) NOT NULL
+    name        VARCHAR(128) NOT NULL,
+    icon        VARCHAR(128) NOT NULL
     );
 
 CREATE TABLE IF NOT EXISTS cities
@@ -16,8 +17,8 @@ CREATE TABLE IF NOT EXISTS cities
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
     name        VARCHAR(256) NOT NULL,
-    latitude    DECIMAL NOT NULL,
-    longitude   DECIMAL NOT NULL
+    lat         DECIMAL NOT NULL,
+    long        DECIMAL NOT NULL
     );
 
 CREATE TABLE IF NOT EXISTS users
@@ -27,7 +28,7 @@ CREATE TABLE IF NOT EXISTS users
     email       VARCHAR(256) NOT NULL UNIQUE,
     name        VARCHAR(256) NOT NULL,
     city_id     INT UNSIGNED NOT NULL,
-    password    CHAR(128)     NOT NULL,
+    password    VARCHAR(128) NOT NULL,
     is_executor BOOLEAN      NOT NULL,
     profile_img VARCHAR(256),
     birthday    DATE,
@@ -46,8 +47,8 @@ CREATE TABLE IF NOT EXISTS tasks
     description TEXT         NOT NULL,
     category_id INT UNSIGNED NOT NULL,
     location    VARCHAR(256) NOT NULL,
-    latitude    DECIMAL,
-    longitude   DECIMAL,
+    lat         DECIMAL,
+    long        DECIMAL,
     city_id     INT UNSIGNED,
     budget      INT UNSIGNED,
     expire_date DATE,
