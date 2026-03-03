@@ -1,18 +1,23 @@
 <?php
 
-namespace TaskForce\Spl;
+namespace TaskForce\Files;
 
 use RuntimeException;
 use SplFileObject;
-use TaskForce\exceptions\CsvColumnsException;
-use TaskForce\exceptions\SourceFileException;
+use TaskForce\Exceptions\CsvColumnsException;
+use TaskForce\Exceptions\SourceFileException;
 
-class CsvImporterSpl
+class CsvFileParser
 {
     protected string $file;
     protected SplFileObject $fileObj;
     protected SqlTableData $data;
 
+    /**
+     * Создаёт экземпляр класса CsvFileParser.
+     *
+     * @param string $file Имя файла.
+     */
     public function __construct(string $file)
     {
         $this->file = $file;
@@ -32,13 +37,13 @@ class CsvImporterSpl
 
         $this->data = new SqlTableData(
             $this->fileObj->getBasename('.csv'),
-            $this->getHeaderData()
+            $this->getHeaderData(),
         );
 
         foreach ($this->getNextLine() as $line) {
             if (count($line) !== count($this->data->getColumns())) {
                 throw new CsvColumnsException(
-                    'Количество столбцов не совпадает с количеством данных'
+                    'Количество столбцов не совпадает с количеством данных',
                 );
             }
             $this->data->addValues($line);

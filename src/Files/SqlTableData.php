@@ -1,6 +1,6 @@
 <?php
 
-namespace TaskForce\Spl;
+namespace TaskForce\Files;
 
 class SqlTableData
 {

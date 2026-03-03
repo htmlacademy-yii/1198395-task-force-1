@@ -1,13 +1,13 @@
 <?php
 
-namespace TaskForce\Spl;
+namespace TaskForce\Files;
 
 use RuntimeException;
 use SplFileObject;
 
 use TaskForce\Exceptions\DestinationFileException;
 
-class SqlExporterSpl
+class SqlFileCreator
 {
     protected SqlTableData $data;
     protected string $destination;
@@ -23,28 +23,29 @@ class SqlExporterSpl
     {
         if (file_exists($this->destination)) {
             throw new DestinationFileException(
-                'Переданный файл уже существует'
+                'Переданный файл уже существует',
             );
         }
 
         try {
             $this->fileObj = new SplFileObject(
-                $this->destination, 'w'
+                $this->destination,
+                'w',
             );
         } catch (RuntimeException $exception) {
             throw new DestinationFileException(
-                'Не удалось создать заданный файл'
+                'Не удалось создать заданный файл',
             );
         }
 
         $this->fileObj->fwrite(
-            $this->addInsertQuery() . $this->addColumns() . $this->addValues()
+            $this->addInsertQuery() . $this->addColumns() . $this->addValues(),
         );
     }
 
     private function addInsertQuery(): string
     {
-        return 'INSERT INTO ' . $this->data->getName() . ' ';
+        return 'INSERT INTO `' . $this->data->getName() . '` ';
     }
 
     private function addColumns(): string
@@ -53,10 +54,10 @@ class SqlExporterSpl
         $isFirst = true;
         foreach ($this->data->getColumns() as $column) {
             if ($isFirst) {
-                $result .= $column;
+                $result .= '`' . $column . '`';
                 $isFirst = false;
             } else {
-                $result .= ', ' . $column;
+                $result .= ', `' . $column . '`';
             }
         }
         $result .= ")\n";
@@ -77,10 +78,10 @@ class SqlExporterSpl
             $isFirstRow = true;
             foreach ($value as $row) {
                 if ($isFirstRow) {
-                    $result .= $row;
+                    $result .= '\'' . $row . '\'';
                     $isFirstRow = false;
                 } else {
-                    $result .= ', ' . $row;
+                    $result .= ', \'' . $row . '\'';
                 }
             }
             $result .= ')';

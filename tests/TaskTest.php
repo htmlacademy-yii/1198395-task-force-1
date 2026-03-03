@@ -8,8 +8,6 @@ use TaskForce\Actions\RespondAction;
 use TaskForce\Actions\StartAction;
 use TaskForce\Task;
 
-require_once __DIR__ . '/../init.php';
-
 final class TaskTest extends TestCase
 {
     public function testInitialTaskStatusIsSetFromConstructor(): void
@@ -20,7 +18,7 @@ final class TaskTest extends TestCase
         );
         $this->assertSame(
             Task::STATUS_ACTIVE,
-            new Task(1, Task::STATUS_ACTIVE)->status,
+            new Task(1, Task::STATUS_ACTIVE, 2)->status,
         );
         $this->assertSame(
             Task::STATUS_CANCELED,
@@ -28,11 +26,11 @@ final class TaskTest extends TestCase
         );
         $this->assertSame(
             Task::STATUS_FAILED,
-            new Task(1, Task::STATUS_FAILED)->status,
+            new Task(1, Task::STATUS_FAILED, 2)->status,
         );
         $this->assertSame(
             Task::STATUS_FINISHED,
-            new Task(1, Task::STATUS_FINISHED)->status,
+            new Task(1, Task::STATUS_FINISHED, 2)->status,
         );
     }
 
@@ -104,7 +102,7 @@ final class TaskTest extends TestCase
     {
         $taskActions = new Task(1, Task::STATUS_ACTIVE)->getActions(
             Task::STATUS_ACTIVE,
-            1
+            1,
         );
 
         $this->assertEqualsCanonicalizing(
@@ -119,7 +117,7 @@ final class TaskTest extends TestCase
     {
         $taskActions = new Task(1, Task::STATUS_ACTIVE, 2)->getActions(
             Task::STATUS_ACTIVE,
-            2
+            2,
         );
 
         $this->assertEqualsCanonicalizing(
@@ -135,7 +133,7 @@ final class TaskTest extends TestCase
         $this->assertEmpty(
             new Task(1, Task::STATUS_FINISHED)->getActions(
                 Task::STATUS_FINISHED,
-                1
+                1,
             ),
         );
     }
@@ -145,7 +143,7 @@ final class TaskTest extends TestCase
         $this->assertEmpty(
             new Task(1, Task::STATUS_CANCELED)->getActions(
                 Task::STATUS_CANCELED,
-                1
+                1,
             ),
         );
     }
@@ -155,7 +153,7 @@ final class TaskTest extends TestCase
         $this->assertEmpty(
             new Task(1, Task::STATUS_FAILED)->getActions(
                 Task::STATUS_FAILED,
-                1
+                1,
             ),
         );
     }

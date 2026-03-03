@@ -6,10 +6,10 @@ error_reporting(E_ALL);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-$data = new \TaskForce\Spl\CsvImporterSpl(__DIR__ . '/data/cities.csv');
+$data = new \TaskForce\Files\CsvFileParser(__DIR__ . '/data/cities.csv');
 $data->import();
-$inserter = new \TaskForce\Spl\SqlExporterSpl(
+$inserter = new \TaskForce\Files\SqlFileCreator(
     __DIR__ . '/db/cities.sql',
-    $data->getData()
+    $data->getData(),
 );
 $inserter->export();

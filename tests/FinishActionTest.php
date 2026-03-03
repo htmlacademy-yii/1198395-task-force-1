@@ -3,8 +3,6 @@
 use PHPUnit\Framework\TestCase;
 use TaskForce\Actions\FinishAction;
 
-require_once __DIR__ . '/../init.php';
-
 final class FinishActionTest extends TestCase
 {
     public function testFinishActionIsAvailableForAuthorOnly(): void
@@ -14,11 +12,11 @@ final class FinishActionTest extends TestCase
         $userId = 1;
 
         $this->assertTrue(
-            new FinishAction()->checkRights($executorId, $authorId, $userId)
+            new FinishAction()->checkRights($executorId, $authorId, $userId),
         );
 
         $this->assertFalse(
-            new FinishAction()->checkRights($executorId, $authorId, 3)
+            new FinishAction()->checkRights($executorId, $authorId, 3),
         );
     }
 }
