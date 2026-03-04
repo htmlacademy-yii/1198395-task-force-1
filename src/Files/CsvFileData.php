@@ -2,7 +2,7 @@
 
 namespace TaskForce\Files;
 
-class SqlTableData
+class CsvFileData
 {
     protected string $name;
     protected array $columns;

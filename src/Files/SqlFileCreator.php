@@ -9,19 +9,19 @@ use TaskForce\Exceptions\DestinationFileException;
 
 class SqlFileCreator
 {
-    protected SqlTableData $data;
-    protected string $destination;
+    protected CsvFileData $data;
+    protected string $filePath;
     protected SplFileObject $fileObj;
 
-    public function __construct(string $destination, SqlTableData $data)
+    public function __construct(string $fileName, string $dirPath, CsvFileData $data)
     {
-        $this->destination = $destination;
+        $this->filePath = $dirPath . $fileName . '.sql';
         $this->data = $data;
     }
 
-    public function export(): void
+    public function create(): void
     {
-        if (file_exists($this->destination)) {
+        if (file_exists($this->filePath)) {
             throw new DestinationFileException(
                 'Переданный файл уже существует',
             );
@@ -29,7 +29,7 @@ class SqlFileCreator
 
         try {
             $this->fileObj = new SplFileObject(
-                $this->destination,
+                $this->filePath,
                 'w',
             );
         } catch (RuntimeException $exception) {

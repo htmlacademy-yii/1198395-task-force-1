@@ -7,35 +7,35 @@ use SplFileObject;
 use TaskForce\Exceptions\CsvColumnsException;
 use TaskForce\Exceptions\SourceFileException;
 
-class CsvFileParser
+class CsvFileImporter
 {
-    protected string $file;
+    protected string $filePath;
     protected SplFileObject $fileObj;
-    protected SqlTableData $data;
+    protected CsvFileData $data;
 
     /**
      * Создаёт экземпляр класса CsvFileParser.
      *
-     * @param string $file Имя файла.
+     * @param string $filePath Путь к файлу.
      */
-    public function __construct(string $file)
+    public function __construct(string $filePath)
     {
-        $this->file = $file;
+        $this->filePath = $filePath;
     }
 
     public function import(): void
     {
-        if (!file_exists($this->file)) {
-            throw new SourceFileException('Переданный CSV Файл не существует');
+        if (!file_exists($this->filePath)) {
+            throw new SourceFileException('Переданный файл не существует');
         }
 
         try {
-            $this->fileObj = new SplFileObject($this->file);
+            $this->fileObj = new SplFileObject($this->filePath);
         } catch (RuntimeException $exception) {
             throw new SourceFileException('Не удалось открыть заданный файл');
         }
 
-        $this->data = new SqlTableData(
+        $this->data = new CsvFileData(
             $this->fileObj->getBasename('.csv'),
             $this->getHeaderData(),
         );
@@ -50,7 +50,7 @@ class CsvFileParser
         }
     }
 
-    public function getData(): SqlTableData
+    public function getData(): CsvFileData
     {
         return $this->data;
     }
