@@ -7,23 +7,42 @@ use SplFileObject;
 
 use TaskForce\Exceptions\DestinationFileException;
 
+/**
+ * Создатель sql файла с запросами на вставку значений в таблицу базы данных.
+ */
 class SqlFileCreator
 {
     protected CsvFileData $data;
     protected string $filePath;
     protected SplFileObject $fileObj;
 
-    public function __construct(string $fileName, string $dirPath, CsvFileData $data)
-    {
+    /**
+     * Создаёт экземпляр класса SqlFileCreator.
+     *
+     * @param string      $fileName Название файла без расширения.
+     * @param string      $dirPath  Путь к папке, где создастся файл.
+     * @param CsvFileData $data     Объект с данными таблицы БД.
+     */
+    public function __construct(
+        string $fileName,
+        string $dirPath,
+        CsvFileData $data
+    ) {
         $this->filePath = $dirPath . $fileName . '.sql';
         $this->data = $data;
     }
 
+    /**
+     * Создаёт файл с sql запросами.
+     *
+     * @return void
+     * @throws DestinationFileException Исключение при ошибке доступа к файлу.
+     */
     public function create(): void
     {
         if (file_exists($this->filePath)) {
             throw new DestinationFileException(
-                'Переданный файл уже существует',
+                'Переданный файл ' . $this->filePath . ' уже существует',
             );
         }
 
@@ -34,7 +53,8 @@ class SqlFileCreator
             );
         } catch (RuntimeException $exception) {
             throw new DestinationFileException(
-                'Не удалось создать заданный файл',
+                'Не удалось создать заданный файл'
+                . $exception->getMessage(),
             );
         }
 
@@ -43,16 +63,26 @@ class SqlFileCreator
         );
     }
 
+    /**
+     * Добавляет ключевые слова и название таблицы.
+     *
+     * @return string Строка вставки с названием таблицы.
+     */
     private function addInsertQuery(): string
     {
-        return 'INSERT INTO `' . $this->data->getName() . '` ';
+        return 'INSERT INTO `' . $this->data->name . '` ';
     }
 
+    /**
+     * Добавляет названия рядов таблицы.
+     *
+     * @return string Строка с названиями рядов таблицы.
+     */
     private function addColumns(): string
     {
         $result = '(';
         $isFirst = true;
-        foreach ($this->data->getColumns() as $column) {
+        foreach ($this->data->columns as $column) {
             if ($isFirst) {
                 $result .= '`' . $column . '`';
                 $isFirst = false;
@@ -64,11 +94,16 @@ class SqlFileCreator
         return $result;
     }
 
+    /**
+     * Добавляет значения рядов таблицы.
+     *
+     * @return string Строка со значениями рядов таблицы.
+     */
     private function addValues(): string
     {
         $result = 'VALUES ';
         $isFirst = true;
-        foreach ($this->data->getValues() as $value) {
+        foreach ($this->data->values as $value) {
             if ($isFirst) {
                 $result .= '(';
                 $isFirst = false;

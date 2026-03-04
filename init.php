@@ -6,5 +6,12 @@ error_reporting(E_ALL);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-$converter = new \TaskForce\Files\CsvToSqlFilesConverter(__DIR__ . '/data/', __DIR__ . '/db/');
-$converter->convert();
+$converter = new \TaskForce\Files\CsvToSqlFilesConverter(
+    __DIR__ . '/data/',
+    __DIR__ . '/db/'
+);
+try {
+    $converter->convert();
+} catch (Exception $exception) {
+    echo $exception->getMessage();
+}

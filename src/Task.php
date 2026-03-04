@@ -72,34 +72,44 @@ class Task
      * @param int    $userId Id пользователя.
      *
      * @return array Массив с объектами-потомками класса AbstractAction.
+     * @throws TaskStatusException Исключение при непредусмотренном статусе задания.
+     *
      */
     public function getActions(string $status, int $userId): array
     {
-        $actionsToStatus =
-            [
-                self::STATUS_NEW =>
-                    [
-                        new StartAction(),
-                        new CancelAction(),
-                        new RespondAction(),
-                    ],
-                self::STATUS_ACTIVE =>
-                    [
-                        new FinishAction(),
-                        new RefuseAction(),
-                    ],
-                self::STATUS_CANCELED => [],
-                self::STATUS_FAILED => [],
-                self::STATUS_FINISHED => [],
-            ];
+        $actionsToStatus = [
+            self::STATUS_NEW      =>
+                [
+                    new StartAction(),
+                    new CancelAction(),
+                    new RespondAction(),
+                ],
+            self::STATUS_ACTIVE   =>
+                [
+                    new FinishAction(),
+                    new RefuseAction(),
+                ],
+            self::STATUS_CANCELED => [],
+            self::STATUS_FAILED   => [],
+            self::STATUS_FINISHED => [],
+        ];
 
         if (!isset($actionsToStatus[$status])) {
-            throw new TaskStatusException('Переданный статус задания не предусмотрен');
+            throw new TaskStatusException(
+                'Переданный статус задания не предусмотрен'
+            );
         }
 
-        return array_filter($actionsToStatus[$status], function ($action) use ($userId) {
-            return $action->checkRights($this->executorId, $this->authorId, $userId);
-        });
+        return array_filter(
+            $actionsToStatus[$status],
+            function ($action) use ($userId) {
+                return $action->checkRights(
+                    $this->executorId,
+                    $this->authorId,
+                    $userId
+                );
+            }
+        );
     }
 
     /**
@@ -109,6 +119,7 @@ class Task
      * @param array          $data   Данные о пользователе, применяющем действие.
      *
      * @return bool `true` - действие применилось, `false` - действие невозможно.
+     * @throws TaskStatusException
      */
     public function applyAction(AbstractAction $action, array $data): bool
     {
