@@ -43,7 +43,8 @@ CREATE TABLE IF NOT EXISTS `users`
     `phone`               CHAR(11),
     `telegram`            CHAR(64),
     `about`               TEXT,
-    FOREIGN KEY (`profile_img_file_id`) REFERENCES `files` (`id`)
+    FOREIGN KEY (`profile_img_file_id`) REFERENCES `files` (`id`),
+    FOREIGN KEY (`city_id`) REFERENCES `cities` (`id`)
 );
 
 CREATE TABLE IF NOT EXISTS `tasks`
