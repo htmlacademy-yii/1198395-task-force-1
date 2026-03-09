@@ -3,8 +3,6 @@
 use PHPUnit\Framework\TestCase;
 use TaskForce\Actions\RefuseAction;
 
-require_once __DIR__ . '/../init.php';
-
 class RefuseActionTest extends TestCase
 {
     public function testRefuseActionIsAvailableForExecutorOnly(): void
@@ -14,11 +12,11 @@ class RefuseActionTest extends TestCase
         $userId = 2;
 
         $this->assertTrue(
-            new RefuseAction()->checkRights($executorId, $authorId, $userId)
+            new RefuseAction()->checkRights($executorId, $authorId, $userId),
         );
 
         $this->assertFalse(
-            new RefuseAction()->checkRights($executorId, $authorId, 1)
+            new RefuseAction()->checkRights($executorId, $authorId, 1),
         );
     }
 }

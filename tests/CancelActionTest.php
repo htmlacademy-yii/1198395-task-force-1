@@ -3,8 +3,6 @@
 use PHPUnit\Framework\TestCase;
 use TaskForce\Actions\CancelAction;
 
-require_once __DIR__ . '/../init.php';
-
 final class CancelActionTest extends TestCase
 {
     public function testCancelActionIsAvailableForAuthorOnly(): void
@@ -14,11 +12,11 @@ final class CancelActionTest extends TestCase
         $userId = 1;
 
         $this->assertTrue(
-            new CancelAction()->checkRights($executorId, $authorId, $userId)
+            new CancelAction()->checkRights($executorId, $authorId, $userId),
         );
 
         $this->assertFalse(
-            new CancelAction()->checkRights($executorId, $authorId, 3)
+            new CancelAction()->checkRights($executorId, $authorId, 3),
         );
     }
 }

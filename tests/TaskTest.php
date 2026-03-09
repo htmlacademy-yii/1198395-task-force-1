@@ -8,8 +8,6 @@ use TaskForce\Actions\RespondAction;
 use TaskForce\Actions\StartAction;
 use TaskForce\Task;
 
-require_once __DIR__ . '/../init.php';
-
 final class TaskTest extends TestCase
 {
     public function testInitialTaskStatusIsSetFromConstructor(): void
@@ -20,7 +18,7 @@ final class TaskTest extends TestCase
         );
         $this->assertSame(
             Task::STATUS_ACTIVE,
-            new Task(1, Task::STATUS_ACTIVE)->status,
+            new Task(1, Task::STATUS_ACTIVE, 2)->status,
         );
         $this->assertSame(
             Task::STATUS_CANCELED,
@@ -28,11 +26,11 @@ final class TaskTest extends TestCase
         );
         $this->assertSame(
             Task::STATUS_FAILED,
-            new Task(1, Task::STATUS_FAILED)->status,
+            new Task(1, Task::STATUS_FAILED, 2)->status,
         );
         $this->assertSame(
             Task::STATUS_FINISHED,
-            new Task(1, Task::STATUS_FINISHED)->status,
+            new Task(1, Task::STATUS_FINISHED, 2)->status,
         );
     }
 
@@ -78,7 +76,11 @@ final class TaskTest extends TestCase
 
     public function testNewTaskReturnsStartAndCancelActionsForAuthor(): void
     {
-        $taskActions = new Task(1)->getActions(Task::STATUS_NEW, 1);
+        try {
+            $taskActions = new Task(1)->getActions(Task::STATUS_NEW, 1);
+        } catch (Exception $exception) {
+            $this->fail($exception->getMessage());
+        }
 
         $this->assertSame(
             [new StartAction()->getName(), new CancelAction()->getName()],
@@ -90,7 +92,11 @@ final class TaskTest extends TestCase
 
     public function testNewTaskReturnsRespondActionForExecutor(): void
     {
-        $taskActions = new Task(1)->getActions(Task::STATUS_NEW, 2);
+        try {
+            $taskActions = new Task(1)->getActions(Task::STATUS_NEW, 2);
+        } catch (Exception $exception) {
+            $this->fail($exception->getMessage());
+        }
 
         $this->assertEqualsCanonicalizing(
             [new RespondAction()->getName()],
@@ -102,10 +108,15 @@ final class TaskTest extends TestCase
 
     public function testActiveTaskReturnsFinishActionForAuthor(): void
     {
-        $taskActions = new Task(1, Task::STATUS_ACTIVE)->getActions(
-            Task::STATUS_ACTIVE,
-            1
-        );
+        try {
+            $taskActions = new Task(1, Task::STATUS_ACTIVE)->getActions(
+                Task::STATUS_ACTIVE,
+                1,
+            );
+        } catch (Exception $exception) {
+            $this->fail($exception->getMessage());
+        }
+
 
         $this->assertEqualsCanonicalizing(
             [new FinishAction()->getName()],
@@ -117,10 +128,15 @@ final class TaskTest extends TestCase
 
     public function testActiveTaskReturnsRefuseActionForExecutor(): void
     {
-        $taskActions = new Task(1, Task::STATUS_ACTIVE, 2)->getActions(
-            Task::STATUS_ACTIVE,
-            2
-        );
+        try {
+            $taskActions = new Task(1, Task::STATUS_ACTIVE, 2)->getActions(
+                Task::STATUS_ACTIVE,
+                2,
+            );
+        } catch (Exception $exception) {
+            $this->fail($exception->getMessage());
+        }
+
 
         $this->assertEqualsCanonicalizing(
             [new RefuseAction()->getName()],
@@ -132,67 +148,96 @@ final class TaskTest extends TestCase
 
     public function testFinishedTaskReturnsEmptyActions(): void
     {
-        $this->assertEmpty(
-            new Task(1, Task::STATUS_FINISHED)->getActions(
+        try {
+            $taskActions = new Task(1, Task::STATUS_FINISHED)->getActions(
                 Task::STATUS_FINISHED,
-                1
-            ),
-        );
+                1,
+            );
+        } catch (Exception $exception) {
+            $this->fail($exception->getMessage());
+        }
+        $this->assertEmpty($taskActions);
     }
 
     public function testCanceledTaskReturnsEmptyActions(): void
     {
-        $this->assertEmpty(
-            new Task(1, Task::STATUS_CANCELED)->getActions(
+        try {
+            $taskActions = new Task(1, Task::STATUS_CANCELED)->getActions(
                 Task::STATUS_CANCELED,
-                1
-            ),
-        );
+                1,
+            );
+        } catch (Exception $exception) {
+            $this->fail($exception->getMessage());
+        }
+
+        $this->assertEmpty($taskActions);
     }
 
     public function testFailedTaskReturnsEmptyActions(): void
     {
-        $this->assertEmpty(
-            new Task(1, Task::STATUS_FAILED)->getActions(
+        try {
+            $taskActions = new Task(1, Task::STATUS_FAILED)->getActions(
                 Task::STATUS_FAILED,
-                1
-            ),
-        );
+                1,
+            );
+        } catch (Exception $exception) {
+            $this->fail($exception->getMessage());
+        }
+
+        $this->assertEmpty($taskActions);
     }
 
     public function testRespondActionAppliesOnlyOnNewTasks(): void
     {
-        $this->assertTrue(
-            new Task(1)->applyAction(
+        try {
+            $isAppliedOnNewTask = new Task(1)->applyAction(
                 new RespondAction(),
-                ['userId' => 2, 'executorId' => 2],
-            ),
-        );
-        $this->assertFalse(
-            new Task(1, Task::STATUS_ACTIVE)->applyAction(
+                ['userId' => 2, 'executorId' => 1],
+            );
+        } catch (Exception $exception) {
+            $this->fail($exception->getMessage());
+        }
+        $this->assertTrue($isAppliedOnNewTask);
+
+        try {
+            $isAppliedOnActiveTask = new Task(
+                1, Task::STATUS_ACTIVE
+            )->applyAction(
                 new RespondAction(),
-                ['userId' => 2, 'executorId' => 2],
-            ),
-        );
+                ['userId' => 2, 'executorId' => 1],
+            );
+        } catch (Exception $exception) {
+            $this->fail($exception->getMessage());
+        }
+        $this->assertFalse($isAppliedOnActiveTask);
     }
 
     public function testRespondActionAppliesOnlyWhenExecutorIsNotSet(): void
     {
-        $this->assertFalse(
-            new Task(1, Task::STATUS_NEW, 3)->applyAction(
+        try {
+            $isAppliedWhenExecutorIsNotSet = new Task(
+                1, Task::STATUS_NEW, 3
+            )->applyAction(
                 new RespondAction(),
-                ['userId' => 2, 'executorId' => 2],
-            ),
-        );
+                ['userId' => 2, 'executorId' => 1],
+            );
+        } catch (Exception $exception) {
+            $this->fail($exception->getMessage());
+        }
+        $this->assertFalse($isAppliedWhenExecutorIsNotSet);
     }
 
     public function testStartActionChangesTaskStatusToActive(): void
     {
         $task = new Task(1);
-        $task->applyAction(
-            new StartAction(),
-            ['userId' => 1, 'executorId' => 2],
-        );
+        try {
+            $task->applyAction(
+                new StartAction(),
+                ['userId' => 1, 'executorId' => 2],
+            );
+        } catch (Exception $exception) {
+            $this->fail($exception->getMessage());
+        }
         $this->assertSame(
             Task::STATUS_ACTIVE,
             $task->status,
@@ -202,10 +247,14 @@ final class TaskTest extends TestCase
     public function testCancelActionChangesTaskStatusToCanceled(): void
     {
         $task = new Task(1);
-        $task->applyAction(
-            new CancelAction(),
-            ['userId' => 1],
-        );
+        try {
+            $task->applyAction(
+                new CancelAction(),
+                ['userId' => 1],
+            );
+        } catch (Exception $exception) {
+            $this->fail($exception->getMessage());
+        }
         $this->assertSame(
             Task::STATUS_CANCELED,
             $task->status,
@@ -215,10 +264,14 @@ final class TaskTest extends TestCase
     public function testFinishActionChangesTaskStatusToFinished(): void
     {
         $task = new Task(1, Task::STATUS_ACTIVE);
-        $task->applyAction(
-            new FinishAction(),
-            ['userId' => 1],
-        );
+        try {
+            $task->applyAction(
+                new FinishAction(),
+                ['userId' => 1],
+            );
+        } catch (Exception $exception) {
+            $this->fail($exception->getMessage());
+        }
         $this->assertSame(
             Task::STATUS_FINISHED,
             $task->status,
@@ -228,10 +281,14 @@ final class TaskTest extends TestCase
     public function testRefuseActionChangesTaskStatusToFailed(): void
     {
         $task = new Task(1, Task::STATUS_ACTIVE, 2);
-        $task->applyAction(
-            new RefuseAction(),
-            ['userId' => 2],
-        );
+        try {
+            $task->applyAction(
+                new RefuseAction(),
+                ['userId' => 2],
+            );
+        } catch (Exception $exception) {
+            $this->fail($exception->getMessage());
+        }
         $this->assertSame(
             Task::STATUS_FAILED,
             $task->status,

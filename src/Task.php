@@ -8,6 +8,7 @@ use TaskForce\Actions\FinishAction;
 use TaskForce\Actions\RefuseAction;
 use TaskForce\Actions\RespondAction;
 use TaskForce\Actions\StartAction;
+use TaskForce\Exceptions\TaskStatusException;
 
 /**
  * Задание - центральная сущность приложения TaskForce.
@@ -50,8 +51,7 @@ class Task
      *
      * @param AbstractAction $action Объект класса AbstractAction
      *
-     * @return string Статус задания, либо пустая строка,
-     * если действие не предусмотрено.
+     * @return string Статус задания.
      */
     public function getNextStatus(
         AbstractAction $action,
@@ -62,7 +62,6 @@ class Task
             new CancelAction()->getName() => self::STATUS_CANCELED,
             new FinishAction()->getName() => self::STATUS_FINISHED,
             new RefuseAction()->getName() => self::STATUS_FAILED,
-            default => '',
         };
     }
 
@@ -73,31 +72,44 @@ class Task
      * @param int    $userId Id пользователя.
      *
      * @return array Массив с объектами-потомками класса AbstractAction.
+     * @throws TaskStatusException Исключение при непредусмотренном статусе задания.
+     *
      */
     public function getActions(string $status, int $userId): array
     {
-        $actions = match ($status) {
-            self::STATUS_NEW =>
-            [
-                new StartAction(),
-                new CancelAction(),
-                new RespondAction(),
-            ],
-            self::STATUS_ACTIVE =>
-            [
-                new FinishAction(),
-                new RefuseAction(),
-            ],
-            default => [],
-        };
+        $actionsToStatus = [
+            self::STATUS_NEW      =>
+                [
+                    new StartAction(),
+                    new CancelAction(),
+                    new RespondAction(),
+                ],
+            self::STATUS_ACTIVE   =>
+                [
+                    new FinishAction(),
+                    new RefuseAction(),
+                ],
+            self::STATUS_CANCELED => [],
+            self::STATUS_FAILED   => [],
+            self::STATUS_FINISHED => [],
+        ];
 
-        return array_filter($actions, function ($action) use ($userId) {
-            return $action->checkRights(
-                $this->executorId,
-                $this->authorId,
-                $userId,
+        if (!isset($actionsToStatus[$status])) {
+            throw new TaskStatusException(
+                'Переданный статус задания не предусмотрен'
             );
-        });
+        }
+
+        return array_filter(
+            $actionsToStatus[$status],
+            function ($action) use ($userId) {
+                return $action->checkRights(
+                    $this->executorId,
+                    $this->authorId,
+                    $userId
+                );
+            }
+        );
     }
 
     /**
@@ -107,6 +119,7 @@ class Task
      * @param array          $data   Данные о пользователе, применяющем действие.
      *
      * @return bool `true` - действие применилось, `false` - действие невозможно.
+     * @throws TaskStatusException
      */
     public function applyAction(AbstractAction $action, array $data): bool
     {
