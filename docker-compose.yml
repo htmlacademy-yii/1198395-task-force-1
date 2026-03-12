@@ -1,11 +1,4 @@
 services:
-  mysql:
-    image: mysql:latest
-    environment:
-      MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
-    restart: always
-    volumes:
-      - ./db:/docker-entrypoint-initdb.d
   nginx:
     image: nginx:latest
     ports:
@@ -19,3 +12,12 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./:/var/www/html
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
+    restart: always
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d
+    depends_on:
+      - php
