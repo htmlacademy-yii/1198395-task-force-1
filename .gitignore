@@ -46,4 +46,4 @@ Thumbs.db
 vendor
 *.cache
 /db/*
-!/db/schema.sql
+!/db/01_schema.sql
